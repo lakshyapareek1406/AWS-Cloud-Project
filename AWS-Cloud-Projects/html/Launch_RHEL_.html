@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launch RHEL GUI Instance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            color: #333;
+        }
+
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="submit"] {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            color: #333;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Launch RHEL GUI Instance</h2>
+
+        <form id="launchForm">
+            <label for="aws_access_key">AWS Access Key:</label>
+            <input type="text" id="aws_access_key" name="aws_access_key" placeholder="Enter AWS Access Key" required>
+
+            <label for="aws_secret_key">AWS Secret Key:</label>
+            <input type="password" id="aws_secret_key" name="aws_secret_key" placeholder="Enter AWS Secret Key" required>
+
+            <label for="region">AWS Region:</label>
+            <input type="text" id="region" name="region" placeholder="Enter AWS Region (e.g., us-west-2)" required>
+
+            <label for="ami_id">AMI ID:</label>
+            <input type="text" id="ami_id" name="ami_id" placeholder="Enter AMI ID" required>
+
+            <label for="instance_type">Instance Type:</label>
+            <input type="text" id="instance_type" name="instance_type" placeholder="Enter Instance Type (e.g., t2.large)" required>
+
+            <label for="key_name">Key Pair Name:</label>
+            <input type="text" id="key_name" name="key_name" placeholder="Enter Key Pair Name" required>
+
+            <input type="submit" value="Launch Instance">
+        </form>
+
+        <div id="output" class="output"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('launchForm');
+        const output = document.getElementById('output');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Collect form data
+            const formData = new FormData(form);
+            const data = {
+                aws_access_key: formData.get('aws_access_key'),
+                aws_secret_key: formData.get('aws_secret_key'),
+                region: formData.get('region'),
+                ami_id: formData.get('ami_id'),
+                instance_type: formData.get('instance_type'),
+                key_name: formData.get('key_name')
+            };
+
+            output.textContent = "Launching instance...";
+
+            try {
+                const response = await fetch('http://localhost:5000/launch-instance', { // Assuming you have a Flask backend
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    output.textContent = `Instance launched successfully: ${result.instance_id}`;
+                } else {
+                    output.textContent = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                output.textContent = `Request failed: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
